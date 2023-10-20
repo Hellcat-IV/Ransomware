@@ -1,0 +1,5 @@
+# pip install -r requirements.txt
+tk==0.1.0
+rsa==4.8
+colorama==0.4.4
+cryptography==36.0.0
