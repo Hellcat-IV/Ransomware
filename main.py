@@ -150,6 +150,6 @@ if __name__ == "__main__":
             decrypt_all()
             print("Files decrypted")
         else:
-            print("Usage: python3 main.py [encrypt|decrypt]")
+            print(colorama.Fore.RED + "Usage: python3 main.py [encrypt|decrypt]")
     except Exception as e:
-        print(colorama.Fore.RED + "[!] - Error: {}".format(e))
+            print(colorama.Fore.RED + "Usage: python3 main.py [encrypt|decrypt]")
