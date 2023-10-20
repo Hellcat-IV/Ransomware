@@ -4,7 +4,7 @@ Description
 -
 1 - Generate rsa pair of key
 2 - Read all files into "ransom_directory"
-3 - Encrypt/Decrypt (depends of the command argument, cf. [Utilisation](https://github.com/Hellcat-IV/Ransomware/edit/main/README.md#utilisation)) all files
+3 - Encrypt/Decrypt (depends of the command argument, cf. Utilisation all files
 4 - Display a tkinter box with some text
 
 Requirements : 
