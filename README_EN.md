@@ -6,9 +6,9 @@ The main features of the script include:
 
 1. **RSA Key Pair Generation**: The script generates an RSA key pair (public key and private key) to encrypt and decrypt files.
 
-2. **File Encryption**: The script encrypts all files in the "ransom_directory" directory (at the root of the project) using the previously generated public key.
+2. **File Encryption**: The script encrypts all files in the "exemple_dir" directory (at the root of the project) using the previously generated public key.
 
-3. **File Decryption**: The script decrypts all files in the "ransom_directory" directory (at the root of the project) using the previously generated private key.
+3. **File Decryption**: The script decrypts all files in the "exemple_dir" directory (at the root of the project) using the previously generated private key.
 
 4. **Display of a tkinter Window**: The script displays a tkinter window with a ransom message.
 

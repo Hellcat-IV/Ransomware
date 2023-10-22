@@ -6,9 +6,9 @@ Les principales caractéristiques du script incluent :
 
 1. **Génération d'une paire de clés RSA** : Le script génère une paire de clés RSA (clé publique et clé privée) pour chiffrer et déchiffrer les fichiers.
 
-2. **Chiffrement des fichiers** : Le script chiffre tous les fichiers du répertoire "ransom_directory" (à la racine du projet) en utilisant la clé publique générée précédemment.
+2. **Chiffrement des fichiers** : Le script chiffre tous les fichiers du répertoire "exemple_dir" (à la racine du projet) en utilisant la clé publique générée précédemment.
 
-3. **Déchiffrement des fichiers** : Le script déchiffre tous les fichiers du répertoire "ransom_directory" (à la racine du projet) en utilisant la clé privée générée précédemment.
+3. **Déchiffrement des fichiers** : Le script déchiffre tous les fichiers du répertoire "exemple_dir" (à la racine du projet) en utilisant la clé privée générée précédemment.
 
 4. **Affichage d'une fenêtre tkinter** : Le script affiche une fenêtre tkinter avec un message de demande de rançon.
 

